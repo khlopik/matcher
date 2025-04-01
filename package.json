@@ -1,0 +1,32 @@
+{
+  "name": "matcher",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vuelidate/core": "^2.0.3",
+    "@vuelidate/validators": "^2.0.4",
+    "gzip-js": "^0.3.2",
+    "vue": "^3.5.13",
+    "vue-i18n": "^10.0.5",
+    "vue-tiny-validate": "^0.2.4",
+    "yup": "^1.6.1"
+  },
+  "devDependencies": {
+    "@types/gzip-js": "^0.3.5",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "prettier": "^3.5.3",
+    "sass": "^1.85.1",
+    "sass-embedded": "^1.85.1",
+    "stylelint": "^16.15.0",
+    "stylelint-config-standard-scss": "^14.0.0",
+    "stylelint-scss": "^6.11.1",
+    "vite": "^6.1.0",
+    "vite-plugin-vue-devtools": "^7.7.2"
+  }
+}

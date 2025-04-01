@@ -1,0 +1,7 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "rules": {
+    "scss/at-use-no-unnamespaced": null,
+    "scss/dollar-variable-pattern": "^[a-z][a-z0-9-]*$"
+  }
+}
