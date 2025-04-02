@@ -7,6 +7,10 @@ const props = defineProps({
   sharedQuestionsIds: {
     type: Array,
   },
+  hasYourQuestionsAdditionFinished: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits([
@@ -19,33 +23,6 @@ const emit = defineEmits([
 ]);
 
 const questions = defineModel("questions");
-
-const model = {
-  yourName: "",
-  partnerName: "",
-  questions: [
-    {
-      isFromYou: true,
-      id: "questionId",
-      text: "questionText",
-      answers: [
-        {
-          id: "answerId",
-          text: "answerText",
-        },
-      ],
-      isAnswered: false,
-    },
-  ],
-  isAnswersSubmitted: {
-    you: false,
-    partner: false,
-  },
-  isFinishedAddingQuestions: {
-    you: false,
-    partner: false,
-  },
-};
 const sharedQuestions = ref([]);
 
 // Methods
@@ -143,6 +120,7 @@ const removeFromShared = (questionIdToRemove) => {
       :question-text="questionData.question"
       :answers="questionData.answers"
       :is-added-to-shared="sharedQuestionsIds.includes(questionData.id)"
+      :has-your-questions-addition-finished="hasYourQuestionsAdditionFinished"
       @add-to-shared="addToShared(questionData.id)"
       @remove-from-shared="removeFromShared(questionData.id)"
       @update-question-text="updateQuestionText"

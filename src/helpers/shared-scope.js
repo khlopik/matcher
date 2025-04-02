@@ -1,9 +1,12 @@
-import { reactive, computed } from "vue";
+import { reactive, computed, watch } from "vue";
 
 export function useSharedStore() {
   // Create reactive state
   const state = reactive({
     _isHost: true,
+    _userId: null,
+    _partnerUserId: null,
+    _hostUserId: null,
     _scope: {
       name: {
         peer1: "",
@@ -12,6 +15,7 @@ export function useSharedStore() {
       questions: [
         // {
         //   id: "questionId",
+        //   userId: "userId",
         //   text: "questionText",
         //   answers: [
         //     {
@@ -19,17 +23,11 @@ export function useSharedStore() {
         //       text: "answerText",
         //     },
         //   ],
-        //   isAnswered: false,
         // },
       ],
-      isFinishedAddingQuestions: {
-        you: false,
-        partner: false,
-      },
-      isAnswersSubmitted: {
-        you: false,
-        partner: false,
-      },
+      isFinishedAddingQuestions: {},
+      isAnswersSubmitted: {},
+      results: {},
     },
   });
 
@@ -40,19 +38,36 @@ export function useSharedStore() {
     return state._scope.questions.every((question) => question.isAnswered);
   });
 
+  const isYouFinishedAddingQuestions = computed(
+    () => state._scope.isFinishedAddingQuestions[state._userId],
+  );
+  const isPartnerFinishedAddingQuestions = computed(
+    () => state._scope.isFinishedAddingQuestions[state._partnerUserId],
+  );
+
   const bothFinishedAddingQuestions = computed(() => {
-    return (
-      state._scope.isFinishedAddingQuestions.you &&
-      state._scope.isFinishedAddingQuestions.partner
-    );
+    return isYouFinishedAddingQuestionsu && isPartnerFinishedAddingQuestions;
+  });
+
+  const hasYouSubmitAnswers = computed(() => {
+    return state._scope.isAnswersSubmitted[state._userId];
+  });
+
+  const hasPartnerSubmitAnswers = computed(() => {
+    return state._scope.isAnswersSubmitted[state._partnerUserId];
   });
 
   const bothSubmittedAnswers = computed(() => {
-    return (
-      state._scope.isAnswersSubmitted.you &&
-      state._scope.isAnswersSubmitted.partner
-    );
+    return hasYouSubmitAnswers && hasPartnerSubmitAnswers;
   });
+
+  function setUserId(userId) {
+    state._userId = userId;
+  }
+
+  function setPartnerUserId(userId) {
+    state._partnerUserId = userId;
+  }
 
   function setIsHost(isHost) {
     state._isHost = isHost;
@@ -72,20 +87,20 @@ export function useSharedStore() {
     );
   }
 
-  function answerQuestion(questionId, answerId) {
-    const question = state._scope.questions.find((q) => q.id === questionId);
-    if (question) {
-      question.isAnswered = true;
-      // Add additional logic if needed to mark which answer was selected
-    }
+  // function answerQuestion(questionId, answerId) {
+  //   const question = state._scope.questions.find((q) => q.id === questionId);
+  //   if (question) {
+  //     question.isAnswered = true;
+  //     // Add additional logic if needed to mark which answer was selected
+  //   }
+  // }
+
+  function setFinishedAddingQuestions(userId, value) {
+    state._scope.isFinishedAddingQuestions[userId] = value;
   }
 
-  function setFinishedAddingQuestions(who, value) {
-    state._scope.isFinishedAddingQuestions[who] = value;
-  }
-
-  function setAnswersSubmitted(who, value) {
-    state._scope.isAnswersSubmitted[who] = value;
+  function setAnswersSubmitted(userId, value) {
+    state._scope.isAnswersSubmitted[userId] = value;
   }
 
   function setPeerName(peerNumber, name) {
@@ -120,6 +135,82 @@ export function useSharedStore() {
     state._scope.name.peer2 = newName;
   }
 
+  function saveResults(userId, results) {
+    state._scope.results[userId] = results;
+  }
+
+  const results = computed(() => {
+    if (!state._userId || !state._partnerUserId) return null;
+
+    const yourAnswers = state._scope.results[state._userId];
+    const partnerAnswers = state._scope.results[state._partnerUserId];
+
+    if (!yourAnswers || !partnerAnswers) return null;
+
+    const {
+      answerResults: yourAnswerResults,
+      questionsData: yourQuestionsData,
+    } = yourAnswers;
+    const {
+      answerResults: partnerAnswerResults,
+      questionsData: partnerQuestionsData,
+    } = partnerAnswers;
+
+    const yourResults = Object.entries(yourAnswerResults).reduce(
+      (acc, [questionId, answerId]) => {
+        const questionData = partnerQuestionsData.find(
+          ({ id }) => id === questionId,
+        );
+        console.log("questionData: ", questionData);
+
+        if (!questionData) return acc;
+
+        const answerData = questionData.answers.find(
+          ({ id }) => id === answerId,
+        );
+        console.log("answerData: ", answerData);
+
+        if (!answerData) return acc;
+
+        acc.push({
+          questionText: questionData.question,
+          answerText: answerData.text,
+          attitude: answerData.attitude,
+        });
+        return acc;
+      },
+      [],
+    );
+
+    const partnerResults = Object.entries(partnerAnswerResults).reduce(
+      (acc, [questionId, answerId]) => {
+        const questionData = yourQuestionsData.find(
+          ({ id }) => id === questionId,
+        );
+        console.log("questionData: ", questionData);
+
+        if (!questionData) return acc;
+
+        const answerData = questionData.answers.find(
+          ({ id }) => id === answerId,
+        );
+        console.log("answerData: ", answerData);
+
+        if (!answerData) return acc;
+
+        acc.push({
+          questionText: questionData.question,
+          answerText: answerData.text,
+          attitude: answerData.attitude,
+        });
+        return acc;
+      },
+      [],
+    );
+
+    return [...yourResults, ...partnerResults];
+  });
+
   return {
     // Expose state (readonly if needed)
     state,
@@ -132,15 +223,22 @@ export function useSharedStore() {
     yourName,
     partnerName,
     questions,
-
+    isYouFinishedAddingQuestions,
+    isPartnerFinishedAddingQuestions,
+    hasYouSubmitAnswers,
+    hasPartnerSubmitAnswers,
+    results,
     // Expose methods
     setIsHost,
     addQuestion,
     removeQuestion,
-    answerQuestion,
+    // answerQuestion,
     setFinishedAddingQuestions,
     setAnswersSubmitted,
     setYourName,
+    setUserId,
     setPartnerName,
+    setPartnerUserId,
+    saveResults,
   };
 }

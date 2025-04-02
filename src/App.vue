@@ -17,7 +17,6 @@ const i18n = useI18n();
 
 const { required } = getValidators(i18n);
 
-const isConnectionExpanded = ref(false);
 const savedName = ref("");
 const userId = guid();
 
@@ -51,22 +50,34 @@ const {
   addQuestion,
   removeQuestion,
   setYourName,
+  setUserId,
   setPartnerName,
+  setPartnerUserId,
   setIsHost,
+  setFinishedAddingQuestions,
+  setAnswersSubmitted,
+  saveResults,
+  state,
   questions,
   yourName,
   partnerName,
+  isYouFinishedAddingQuestions,
+  isPartnerFinishedAddingQuestions,
+  hasYouSubmitAnswers,
+  hasPartnerSubmitAnswers,
+  results,
 } = useSharedStore();
 
 const sharedQuestionsIds = computed(() =>
   (questions.value || []).map(({ questionId }) => questionId),
 );
 
-const sendName = () => {
+const setUserDetails = () => {
   const payload = {
-    action: ACTION.SET_NAME,
+    action: ACTION.SET_USER_DETAILS,
     data: {
       name: savedName.value,
+      userId,
     },
   };
   sendData(payload);
@@ -77,8 +88,9 @@ const onConnect = ({ isPeer1 }) => {
   console.log("isPeer1: ", isPeer1);
   setIsHost(isPeer1);
   setYourName(savedName.value);
+  setUserId(userId);
   isConnected.value = true;
-  sendName();
+  setUserDetails();
 };
 
 const onDisconnect = () => {
@@ -237,10 +249,67 @@ const onChangeName = () => {
   isNameChangeRequested.value = true;
 };
 
+const onFinishAddingQuestions = ({ userId }) => {
+  console.log("== onFinishAddingQuestions() ==");
+  console.log("userId: ", userId);
+  setFinishedAddingQuestions(userId, true);
+  console.log("isYouFinishedAddingQuestions: ", isYouFinishedAddingQuestions);
+  console.log("state: ", state);
+  const data = {
+    action: ACTION.FINISH_ADDING_QUESTIONS,
+    data: { userId, value: true },
+  };
+
+  sendData(data);
+};
+
+const onSubmitAnswers = (answerData) => {
+  console.log("== onSubmitAnswers() ==");
+  console.log("answerData: ", answerData);
+  setAnswersSubmitted(userId, true);
+  const data = {
+    action: ACTION.APPROVE_ANSWERS,
+    data: { userId, value: true },
+  };
+
+  sendData(data);
+};
+
+const onSaveResults = (answerResults) => {
+  console.log("== onSaveResults() ==");
+  console.log("answerResults: ", answerResults);
+
+  const data = { answerResults, questionsData: yourQuestions.value };
+
+  saveResults(userId, data);
+
+  const dataToSend = {
+    action: ACTION.SEND_RESULTS,
+    data: { userId, ...data },
+  };
+  sendData(dataToSend);
+};
+
 const handlerByAction = {
-  [ACTION.SET_NAME]: ({ name }) => setPartnerName(name),
-  [ACTION.ADD_QUESTION]: (questionData) => addQuestion(questionData),
-  [ACTION.REMOVE_QUESTION]: ({ questionId }) => removeQuestion(questionId),
+  [ACTION.SET_USER_DETAILS]: ({ name, userId }) => {
+    setPartnerName(name);
+    setPartnerUserId(userId);
+  },
+  [ACTION.ADD_QUESTION]: (questionData) => {
+    addQuestion(questionData);
+  },
+  [ACTION.REMOVE_QUESTION]: ({ questionId }) => {
+    removeQuestion(questionId);
+  },
+  [ACTION.FINISH_ADDING_QUESTIONS]: ({ userId, value }) => {
+    setFinishedAddingQuestions(userId, value);
+  },
+  [ACTION.APPROVE_ANSWERS]: ({ userId, value }) => {
+    setAnswersSubmitted(userId, value);
+  },
+  [ACTION.SEND_RESULTS]: ({ userId, answerResults, questionsData }) => {
+    saveResults(userId, { answerResults, questionsData });
+  },
 };
 
 const onReceiveMessage = (stringMessage) => {
@@ -260,28 +329,12 @@ const onReceiveMessage = (stringMessage) => {
     :is-data-exist="isDataExist"
     :is-data-just-loaded="isDataJustLoaded"
     :your-name="savedName"
+    :partner-name="partnerName"
     :is-connected="isConnected"
     @save-data="saveDataToLocalStorage"
     @load-data="loadDataFromLocalStorage"
     @change-name="onChangeName"
   />
-  <!--  <header class="header">-->
-  <!--    <localization />-->
-  <!--    <div class="connection-modal-wrapper" :class="connectionDynamicClass">-->
-  <!--      <div class="connection-modal">-->
-  <!--        {{ yourName }}-->
-  <!--        isConnected: {{ isConnected }}-->
-  <!--        <button @click="toggleConnectionModal">Show</button>-->
-  <!--        {{ partnerName }}-->
-  <!--        <web-rtc-connection-->
-  <!--          ref="rtc"-->
-  <!--          :name="savedName"-->
-  <!--          @connected="onConnect"-->
-  <!--          @receive-message="onReceiveMessage"-->
-  <!--        />-->
-  <!--      </div>-->
-  <!--    </div>-->
-  <!--  </header>-->
   <main>
     <form
       v-if="isNameFormVisible"
@@ -302,6 +355,7 @@ const onReceiveMessage = (stringMessage) => {
       v-if="savedName"
       v-model:questions="yourQuestions"
       :shared-questions-ids="sharedQuestionsIds"
+      :has-your-questions-addition-finished="isYouFinishedAddingQuestions"
       @add-question="addNewQuestion"
       @remove-question="removeYourQuestion"
       @add-answer="addNewAnswer"
@@ -316,7 +370,19 @@ const onReceiveMessage = (stringMessage) => {
       :partner-name="partnerName"
       :questions="questions"
       :user-id="userId"
+      :has-your-questions-addition-finished="isYouFinishedAddingQuestions"
+      :has-partner-questions-addition-finished="
+        isPartnerFinishedAddingQuestions
+      "
+      :has-you-submit-answers="hasYouSubmitAnswers"
+      :has-partner-submit-answers="hasPartnerSubmitAnswers"
+      @finish-adding-questions="onFinishAddingQuestions"
+      @submit-answers="onSubmitAnswers"
+      @save-results="onSaveResults"
     />
+    <p v-else class="connection-required-hint">
+      {{ $t("message.connectionRequired") }}
+    </p>
     <web-rtc-connection
       v-show="!isConnected"
       ref="rtc"
@@ -325,6 +391,7 @@ const onReceiveMessage = (stringMessage) => {
       @disconnected="onDisconnect"
       @receive-message="onReceiveMessage"
     />
+    {{ results }}
     <div v-if="isConnected" class="chat">Chat</div>
   </aside>
 </template>
@@ -345,5 +412,11 @@ const onReceiveMessage = (stringMessage) => {
   .name-button {
     margin-left: 20px;
   }
+}
+
+.connection-required-hint {
+  padding: 0 20px 20px;
+  text-align: center;
+  color: var(--c-primary-color);
 }
 </style>

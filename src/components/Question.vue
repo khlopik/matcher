@@ -32,7 +32,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  disabled: {
+  hasYourQuestionsAdditionFinished: {
     type: Boolean,
     default: false,
   },
@@ -190,6 +190,7 @@ const onUpdateText = (value, answerId) => {
           <a-button
             type="submit"
             :text="addRemoveButtonText"
+            :disabled="hasYourQuestionsAdditionFinished"
             class="question__add-to-shared-button"
             :class="addRemoveButtonDynamicClass"
           />

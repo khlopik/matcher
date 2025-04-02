@@ -12,6 +12,14 @@
     "main aside";
   grid-row-gap: 1rem;
   grid-column-gap: 1rem;
+
+  .v-gap {
+    margin-bottom: 20px;
+  }
+
+  .h-gap {
+    margin-left: 20px;
+  }
 }
 
 header {
@@ -32,6 +40,25 @@ a,
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;
   padding: 3px;
+}
+
+:root {
+  --borderWidth: 7px;
+  --height: 24px;
+  --width: 12px;
+}
+
+.checkmark {
+  display: inline-block;
+  transform: rotate(45deg);
+  height: var(--height);
+  width: var(--width);
+  border-bottom: var(--borderWidth) solid var(--c-checkmark-active);
+  border-right: var(--borderWidth) solid var(--c-checkmark-active);
+
+  &.inactive {
+    border-color: var(--c-checkmark-inactive);
+  }
 }
 
 @media (hover: hover) {
@@ -75,4 +102,21 @@ a,
 button[disabled] {
   cursor: not-allowed;
   pointer-events: none;
+}
+
+/* animations */
+.collapse-enter-active,
+.collapse-leave-active {
+  transition: all 0.5s;
+  max-height: 50px; /* Adjust based on your error message height */
+  overflow: hidden;
+  opacity: 1;
+  transform-origin: top;
+}
+
+.collapse-enter-from,
+.collapse-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: scaleY(0);
 }

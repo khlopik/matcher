@@ -13,6 +13,11 @@ export default {
       attitudeLabel: "Your attitude:",
       nonEmptyName: "Please provide your name before creating a connection...",
       connectToExisting: "Or paste connection data from your peer",
+      pasteAnswer: "Paste the answer from your peer",
+      sendConnectionData: "Share this connection data with your peer",
+      connectionRequired:
+        "To ask a partner a question, you must first connect with them.",
+      sharedQuestions: "Questions to each other",
     },
     button: {
       set: "Set",
@@ -25,6 +30,9 @@ export default {
       createConnection: "Create connection",
       connect: "Connect",
       copy: "Copy",
+      finishAddingQuestions: "Finish adding your questions",
+      acceptQuestionsAndAnswers: "Accept all questions and answers",
+      showResults: "Show Results",
       negative: "Negative",
       mostlyNegative: "Mostly netative",
       neutral: "Neutral",
@@ -34,6 +42,7 @@ export default {
     hint: {
       save: "Save data to local storage",
       disabledSave: "No changes since last save",
+      copied: "Copied",
     },
     validation: {
       required: "This field is required.",
@@ -54,6 +63,10 @@ export default {
       nonEmptyName:
         "Будь ласка, вкажіть своє ім\`я перед тим, як з'єднатись...",
       connectToExisting: "Або вставте дані з'єднання, які вам надіслали",
+      pasteAnswer: "Вставте відповідь, яку вам надіслав партнер",
+      sendConnectionData: "Відправте ці дані з'єднання вашому партнеру",
+      connectionRequired: `Для того, щоб поставити питання партнеру, ви маєте спочатку з'єднатись з ним.`,
+      sharedQuestions: "Питання один одному",
     },
     button: {
       set: "Встановити",
@@ -66,6 +79,9 @@ export default {
       createConnection: "Створити з'єднання",
       connect: "Під'єднатися",
       copy: "Зкопіювати",
+      finishAddingQuestions: "Завершити додавати свої питання",
+      acceptQuestionsAndAnswers: "Прийняти всі питання та відповіді",
+      showResults: "Переглянути Результати",
       negative: "Негативне",
       mostlyNegative: "Переважно негативне",
       neutral: "Нейтральне",
@@ -75,6 +91,7 @@ export default {
     hint: {
       save: "Зберегти дані в локальне сховище",
       disabledSave: "Немає змін з попереднього збереження",
+      copied: "Зкопійовано",
     },
     validation: {
       required: "Це поле є обов'язковим.",

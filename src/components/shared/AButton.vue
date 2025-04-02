@@ -61,6 +61,7 @@ const onClick = () => {
   background: var(--c-button-general);
 
   .button__text {
+    color: var(--c-button-text);
     transition: all 0.2s ease;
   }
 
@@ -69,7 +70,7 @@ const onClick = () => {
   }
 
   &:disabled .button__text {
-    color: var(--c-light-text);
+    color: var(--c-button-disabled-text);
   }
 
   &:hover:not(:disabled) {

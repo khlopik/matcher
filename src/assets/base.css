@@ -34,6 +34,13 @@
   --c-button-general: #ccc;
   --c-button-general-hover: #ddd;
   --c-button-general-border-hover: #0080ff;
+  --c-button-text: #2c3e50;
+  --c-button-disabled-text: #7f8c8d;
+
+  /* checkmark */
+
+  --c-checkmark-active: #78b13f;
+  --c-checkmark-inactive: #c9dadc;
 }
 
 /* semantic color variables for this project */
@@ -69,6 +76,14 @@
     --c-dark-text: #e2e8f0;
     --c-light-text: #a0aec0;
     --c-section-background-color: #22272e;
+
+    /* button */
+    --c-button-general: #444;
+    --c-button-general-hover: #555;
+    --c-button-general-border-hover: #39f;
+    --c-button-text: #ecf0f1;
+    --c-button-disabled-text: #95a5a6;
+
   }
 }
 

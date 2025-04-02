@@ -2,6 +2,10 @@
 import { ref, onBeforeUnmount } from "vue";
 import Gzip from "gzip-js";
 import AButton from "@/components/shared/AButton.vue";
+import AHintMessage from "@/components/shared/AHintMessage.vue";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const configuration = {
   iceServers: [
@@ -61,6 +65,7 @@ const localhost = ref(
     window.location.hostname === "127.0.0.1",
 );
 const showLocalhostTips = ref(false);
+const copyHint = ref("");
 
 const initPeerConnection = () => {
   console.log("== initPeerConnection() ==");
@@ -341,7 +346,9 @@ defineExpose({ sendMessage });
 const copyToClipboard = (text) => {
   navigator.clipboard
     .writeText(text)
-    // .then(() => alert("Copied to clipboard!"))
+    .then(() => {
+      copyHint.value = t("hint.copied");
+    })
     .catch((err) => console.error("Failed to copy: ", err));
 };
 const testLocalConnection = async () => {
@@ -429,84 +436,28 @@ onBeforeUnmount(() => {
       {{ $t("message.nonEmptyName") }}
     </p>
     <template v-else>
-      <!--    <div-->
-      <!--      v-if="connectionStatus === 'checking' || connectionStatus === 'failed'"-->
-      <!--      class="connection-actions"-->
-      <!--    >-->
-      <!--      <p>Connection is {{ connectionStatus }}...</p>-->
-      <!--      <button @click="restartIce">Restart Connection</button>-->
-      <!--      <p>If restart doesn't work, try the following:</p>-->
-      <!--      <ul>-->
-      <!--        <li>Make sure both peers are on networks that allow WebRTC</li>-->
-      <!--        <li>Try disabling firewalls temporarily</li>-->
-      <!--        <li>Ensure both peers have shared the most recent connection data</li>-->
-      <!--      </ul>-->
-      <!--    </div>-->
-
-      <div class="connection-status">
-        Status: {{ connectionStatus }}
-        <span v-if="localhost" class="localhost-indicator"
-          >(Localhost Testing Mode)</span
-        >
-      </div>
-
-      <!--      &lt;!&ndash; Special localhost testing controls &ndash;&gt;-->
-      <!--      <div v-if="localhost && !isConnected" class="localhost-controls">-->
-      <!--        <div class="alert">-->
-      <!--          <strong>Localhost Detected:</strong> WebRTC connections may behave-->
-      <!--          differently when testing on localhost.-->
-      <!--          <button @click="showLocalhostTips = !showLocalhostTips">-->
-      <!--            {{ showLocalhostTips ? "Hide Tips" : "Show Tips" }}-->
-      <!--          </button>-->
-      <!--        </div>-->
-
-      <!--        &lt;!&ndash;      <div v-if="showLocalhostTips" class="localhost-tips">&ndash;&gt;-->
-      <!--        &lt;!&ndash;        <h3>Tips for Testing on Localhost:</h3>&ndash;&gt;-->
-      <!--        &lt;!&ndash;        <ul>&ndash;&gt;-->
-      <!--        &lt;!&ndash;          <li>Use two different browsers (e.g., Chrome and Firefox)</li>&ndash;&gt;-->
-      <!--        &lt;!&ndash;          <li>Make sure both pages are using HTTPS or both are using HTTP</li>&ndash;&gt;-->
-      <!--        &lt;!&ndash;          <li>&ndash;&gt;-->
-      <!--        &lt;!&ndash;            If connection fails, try testing on two separate devices on the same&ndash;&gt;-->
-      <!--        &lt;!&ndash;            network&ndash;&gt;-->
-      <!--        &lt;!&ndash;          </li>&ndash;&gt;-->
-      <!--        &lt;!&ndash;          <li>&ndash;&gt;-->
-      <!--        &lt;!&ndash;            For Chrome, you can view detailed WebRTC logs at&ndash;&gt;-->
-      <!--        &lt;!&ndash;            chrome://webrtc-internals&ndash;&gt;-->
-      <!--        &lt;!&ndash;          </li>&ndash;&gt;-->
-      <!--        &lt;!&ndash;        </ul>&ndash;&gt;-->
-      <!--        &lt;!&ndash;      </div>&ndash;&gt;-->
-
-      <!--        <button @click="testLocalConnection" class="test-button">-->
-      <!--          Test WebRTC Capability-->
-      <!--        </button>-->
-      <!--      </div>-->
-
-      <!--    <div v-if="!isConnected">-->
-      <!--      <button @click="createLocalTestConnection">Test Local Connection</button>-->
-      <!--    </div>-->
-      <!--      <div v-if="testingLocal">-->
-      <!--        <a-button @click="acceptAsAnswer"/>Accept as Answer</a-button>-->
-      <!--      </div>-->
-
       <div v-if="localOffer">
-        <p>Share this connection data with your peer:</p>
+        <p class="webrtc__label">{{ $t("message.sendConnectionData") }}:</p>
         <textarea readonly v-model="localOfferEncoded" rows="5"></textarea>
         <a-button
           text="button.copy"
           @click="copyToClipboard(localOfferEncoded)"
         />
+        <a-hint-message v-model="copyHint" />
       </div>
 
       <div v-if="!isConnected && !hasPeer">
-        <a-button text="button.createConnection" @click="createOffer" />
-        <!--      <div v-if="localOffer">-->
-        <!--        <p>Share this connection data with your peer:</p>-->
-        <!--        <textarea readonly v-model="localOffer" rows="5"></textarea>-->
-        <!--        <button @click="copyToClipboard(localOffer)">Copy</button>-->
-        <!--      </div>-->
+        <a-button
+          v-if="!localOffer"
+          text="button.createConnection"
+          @click="createOffer"
+        />
 
         <div class="answer-section">
-          <p>{{ $t("message.connectToExisting") }}:</p>
+          <p v-if="!localOffer" class="webrtc__label">
+            {{ $t("message.connectToExisting") }}:
+          </p>
+          <p v-else class="webrtc__label">{{ $t("message.pasteAnswer") }}:</p>
           <textarea v-model="remoteData" rows="5"></textarea>
           <a-button text="button.connect" @click="handleRemoteData" />
         </div>
@@ -534,6 +485,7 @@ onBeforeUnmount(() => {
 
 textarea {
   width: 100%;
+  max-width: 100%;
   margin-bottom: 10px;
 }
 
@@ -543,34 +495,6 @@ textarea {
   overflow-y: auto;
   margin-bottom: 10px;
   padding: 10px;
-}
-
-.message {
-  padding: 8px 12px;
-  margin-bottom: 8px;
-  border-radius: 8px;
-  max-width: 70%;
-}
-
-.sent {
-  color: black;
-  background-color: #dcf8c6;
-  margin-left: auto;
-}
-
-.received {
-  color: black;
-  background-color: #f1f0f0;
-}
-
-.message-input {
-  display: flex;
-}
-
-.message-input input {
-  flex: 1;
-  padding: 8px;
-  margin-right: 10px;
 }
 
 .localhost-indicator {
@@ -586,6 +510,15 @@ textarea {
   border: 1px solid #ffcc80;
   background-color: #fff8e1;
   border-radius: 4px;
+}
+
+.answer-section {
+  margin-top: 20px;
+}
+
+.webrtc__label {
+  margin-bottom: 2px;
+  font-weight: bold;
 }
 
 .alert {

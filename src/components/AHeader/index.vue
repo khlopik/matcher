@@ -88,6 +88,7 @@ const connectionIndicatorClass = computed(() => ({
         class="header__connection-indicator"
         :class="connectionIndicatorClass"
       />
+      <p v-if="isConnected" class="header__small-gap">({{ partnerName }})</p>
     </div>
   </header>
 </template>

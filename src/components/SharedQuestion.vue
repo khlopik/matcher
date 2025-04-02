@@ -17,12 +17,24 @@ const props = defineProps({
   isYourQuestion: {
     type: Boolean,
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
+
+const emit = defineEmits(["answer"]);
 
 const dynamicClass = computed(() => ({
   your: props.isYourQuestion,
   partner: !props.isYourQuestion,
 }));
+
+const onInput = (event) => {
+  const { value } = event.target;
+  console.log("value: ", value);
+  emit("answer", { questionId: props.questionId, answerId: value });
+};
 </script>
 
 <template>
@@ -32,11 +44,19 @@ const dynamicClass = computed(() => ({
     <ul v-if="!isYourQuestion" class="shared-question__answers">
       <li v-for="answer in answers" :key="answer.id" class="answer">
         <label class="rating-option">
-          <input type="radio" :name="questionId" :value="answer.id" />
+          <input
+            type="radio"
+            :name="questionId"
+            :value="answer.id"
+            :checked="false"
+            :disabled="disabled"
+            @input="onInput"
+          />
           <span class="rating-text">{{ answer.text }}</span>
         </label>
       </li>
     </ul>
+    <slot name="error" />
   </div>
 </template>
 

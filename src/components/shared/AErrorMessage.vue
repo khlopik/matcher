@@ -43,21 +43,4 @@ const errorMessage = computed(() => {
 .error-message {
   color: var(--c-negative-color);
 }
-
-/* Add these styles to your component's <style> section */
-.collapse-enter-active,
-.collapse-leave-active {
-  transition: all 0.5s;
-  max-height: 50px; /* Adjust based on your error message height */
-  overflow: hidden;
-  opacity: 1;
-  transform-origin: top;
-}
-
-.collapse-enter-from,
-.collapse-leave-to {
-  max-height: 0;
-  opacity: 0;
-  transform: scaleY(0);
-}
 </style>
